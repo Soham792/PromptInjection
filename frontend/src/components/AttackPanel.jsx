@@ -15,6 +15,8 @@ export default function AttackPanel({
   setTargetData,
   attackType,
   setAttackType,
+  attackPhrase,
+  setAttackPhrase,
   injectedInstruction,
   setInjectedInstruction,
   injectedData,
@@ -92,6 +94,19 @@ export default function AttackPanel({
           <option value="fake_completion">Fake Completion</option>
           <option value="combined">Combined Attack</option>
         </select>
+      </div>
+
+      <div className="form-group">
+        <label className="form-label">
+          Attack Phrase / Separator
+        </label>
+        <textarea
+          className="form-textarea"
+          value={attackPhrase}
+          onChange={(e) => setAttackPhrase(e.target.value)}
+          placeholder="e.g., Ignore previous instructions."
+          rows={2}
+        />
       </div>
 
       <div className="form-group">

@@ -5,7 +5,7 @@ const DEFENSE_DESCRIPTIONS = {
   delimiters: "Wraps data in triple quotes to signal it should be treated as data only",
   sandwich: "Appends a reminder of the original task after the data",
   instructional: "Modifies the system instruction to warn the LLM about injection attempts",
-  llm_detection: "Uses Gemini itself to detect if the data contains injected instructions",
+  llm_detection: "Uses the Local LLM itself to detect if the data contains injected instructions",
   known_answer: "Plants a secret key instruction; checks if LLM still outputs it"
 };
 

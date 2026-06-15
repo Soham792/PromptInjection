@@ -3,8 +3,10 @@ import random
 import string
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import google.generativeai as genai
+import ollama
+from ollama import chat
 from dotenv import load_dotenv
+
 
 from attacks import (
     naive_attack,
@@ -24,14 +26,8 @@ from defenses import (
 
 load_dotenv()
 
-# Configure Gemini API
-api_key = os.environ.get("GEMINI_API_KEY")
-if not api_key or api_key == "your_api_key_here":
-    # Let's print a warning but not crash immediately, so the server can run
-    print("WARNING: GEMINI_API_KEY is not set correctly in the environment or .env file.")
-
-genai.configure(api_key=api_key or "DUMMY_KEY")
-model = genai.GenerativeModel("gemini-2.5-flash")
+# Configure Ollama API
+OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "llama3")
 
 app = Flask(__name__)
 # Enable CORS for the React frontend running on port 3000
@@ -61,13 +57,13 @@ PREVENTION_MAPPING = {
     "instructional": instructional_prevention
 }
 
-def query_gemini(instruction_prompt, data):
+def query_ollama(instruction_prompt, data):
     """
-    Helper function to query Gemini.
+    Helper function to query Ollama.
     """
     full_prompt = f"{instruction_prompt}\n\n{data}"
-    response = model.generate_content(full_prompt)
-    return response.text
+    response = ollama.generate(model=OLLAMA_MODEL, prompt=full_prompt)
+    return response['response']
 
 @app.route("/api/attack", methods=["POST"])
 def run_attack():
@@ -82,6 +78,7 @@ def run_attack():
         injected_instruction = data.get("injected_instruction", "")
         injected_data = data.get("injected_data", "")
         defense_type = data.get("defense_type", "none")
+        attack_phrase = data.get("attack_phrase", None)
 
         # Validation
         if target_task not in TASK_PROMPTS:
@@ -93,15 +90,15 @@ def run_attack():
 
         # 1. Run the selected attack to get compromised_data
         attack_fn = ATTACK_MAPPING[attack_type]
-        compromised_data = attack_fn(target_data, injected_instruction, injected_data)
+        compromised_data = attack_fn(target_data, injected_instruction, injected_data, attack_phrase=attack_phrase)
 
         # 2. Check if defense is a detection defense
         if defense_type in ["llm_detection", "known_answer"]:
             if defense_type == "llm_detection":
-                triggered, reason = llm_based_detection(compromised_data, model)
+                triggered, reason = llm_based_detection(compromised_data, OLLAMA_MODEL)
             else:  # known_answer
                 secret_key = "".join(random.choices(string.ascii_letters + string.digits, k=7))
-                triggered, reason = known_answer_detection(compromised_data, secret_key, model)
+                triggered, reason = known_answer_detection(compromised_data, secret_key, OLLAMA_MODEL)
 
             # If a detection defense is chosen, return the detection result WITHOUT querying the main task
             llm_response = "[Blocked] Prompt injection detected by defense scanner." if triggered else "[Passed] Defense scanner did not trigger. Connection to main task execution blocked for demonstration safety."
@@ -124,13 +121,13 @@ def run_attack():
         defense_fn = PREVENTION_MAPPING[defense_type]
         defended_prompt, defended_data = defense_fn(instruction_prompt, compromised_data)
 
-        # Query Gemini for the main task
-        llm_response = query_gemini(defended_prompt, defended_data)
+        # Query Ollama for the main task
+        llm_response = query_ollama(defended_prompt, defended_data)
 
         # Determine if the attack succeeded by comparing to expected (baseline) task output
-        # Get baseline expected response by calling Gemini with clean inputs
+        # Get baseline expected response by calling Ollama with clean inputs
         try:
-            baseline_response = query_gemini(instruction_prompt, target_data)
+            baseline_response = query_ollama(instruction_prompt, target_data)
             baseline_clean = baseline_response.strip().lower()
         except Exception as e:
             print(f"Error querying baseline: {e}")
@@ -166,6 +163,21 @@ def run_attack():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route("/ask", methods=["POST"])
+def ask():
+    prompt = request.json["prompt"]
+
+    response = chat(
+        model="qwen3:4b",
+        messages=[
+            {"role": "user", "content": prompt}
+        ]
+    )
+
+    return jsonify({
+        "response": response["message"]["content"]
+    })
 
 if __name__ == "__main__":
     # Runs on port 5001 as required

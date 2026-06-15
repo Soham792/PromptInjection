@@ -7,7 +7,7 @@ export default function ResultDisplay({ apiResult, loading, error, defenseType }
     return (
       <div className="card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '300px' }}>
         <div className="spinner" style={{ width: '40px', height: '40px', borderWidth: '4px', marginBottom: '1rem' }} />
-        <p style={{ color: 'var(--text-secondary)' }}>Querying Gemini API and executing defense checks...</p>
+        <p style={{ color: 'var(--text-secondary)' }}>Querying Local LLM and executing defense checks...</p>
       </div>
     );
   }
@@ -22,7 +22,7 @@ export default function ResultDisplay({ apiResult, loading, error, defenseType }
           {error}
         </div>
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-          Please make sure your backend server is running on <code style={{ fontFamily: 'var(--font-mono)' }}>localhost:5001</code> and the <code style={{ fontFamily: 'var(--font-mono)' }}>GEMINI_API_KEY</code> is correctly set in the backend <code style={{ fontFamily: 'var(--font-mono)' }}>.env</code> file.
+          Please make sure your backend server is running on <code style={{ fontFamily: 'var(--font-mono)' }}>localhost:5001</code> and Ollama is properly configured.
         </p>
       </div>
     );

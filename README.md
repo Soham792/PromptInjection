@@ -7,26 +7,28 @@ The app simulates an LLM-Integrated Application (such as automated resume screen
 ---
 
 ## Technical Stack
-- **Backend:** Python Flask (REST API) + Google Gemini API (using the `google-generativeai` SDK with `gemini-2.5-flash`)
+- **Backend:** Python Flask (REST API) + Local LLM (via Ollama)
 - **Frontend:** React.js (Vite, single-page application)
-- **Styling:** Premium Dark theme built using custom Vanilla CSS
+- **Styling:** Premium Dark theme with Glassmorphism built using custom Vanilla CSS
 
 ---
 
 ## Prerequisites
 - **Python:** Version 3.9 or higher
 - **Node.js:** Version 18.x or higher
-- **Gemini API Key:** A valid Google Gemini API key
+- **Ollama:** Installed locally to run open-source models
 
 ---
 
 ## Setup Instructions
 
-### 1. Get a Gemini API Key
-If you do not have an API key:
-1. Visit [Google AI Studio](https://aistudio.google.com/) or [Google Cloud Console](https://console.cloud.google.com/).
-2. Sign in with your Google account.
-3. Click on **Create API Key** and copy it.
+### 1. Download and Install Ollama
+If you do not have Ollama installed:
+1. Visit [Ollama.com](https://ollama.com/) and download the application for your OS.
+2. Open a terminal and pull the default model used by the application (Qwen3 4B):
+   ```bash
+   ollama pull qwen3:4b
+   ```
 
 ### 2. Backend Setup
 1. Open a terminal and navigate to the `backend` folder:
@@ -37,9 +39,9 @@ If you do not have an API key:
    ```bash
    pip install -r requirements.txt
    ```
-3. Open the `.env` file in the `backend/` directory and replace `your_api_key_here` with your actual API key:
+3. Open the `.env` file in the `backend/` directory and configure the model name:
    ```env
-   GEMINI_API_KEY=AIzaSy...your_actual_key...
+   OLLAMA_MODEL=qwen3:4b
    ```
 4. Start the Flask server:
    ```bash
@@ -58,7 +60,7 @@ If you do not have an API key:
    ```
 3. Start the React development server:
    ```bash
-   npm start
+   npm run dev
    ```
    *The frontend runs on port `3000` (`http://localhost:3000`).*
 
